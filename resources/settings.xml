@@ -19,10 +19,6 @@
       <setting id="megapeer_alias" label="32077" type="text" default="" subsetting="true" visible="eq(-1,true)" />
       <setting id="megapeer_contains" type="enum" label="32078" subsetting="true" lvalues="32079|32080|32081" visible="eq(-2,true)" />
 
-    <setting label="Serialz.tv" id="use_serialz" type="bool" default="false" />
-      <setting id="serialz_alias" label="32077" type="text" default="" subsetting="true" visible="eq(-1,true)" />
-      <setting id="serialz_contains" type="enum" label="32078" subsetting="true" lvalues="32079|32080|32081" visible="eq(-2,true)" />
-
     <setting label="TFile" id="use_tfile" type="bool" default="false" />
       <setting id="tfile_alias" label="32077" type="text" default="" subsetting="true" visible="eq(-1,true)" />
       <setting id="tfile_contains" type="enum" label="32078" subsetting="true" lvalues="32079|32080|32081" visible="eq(-2,true)" />
@@ -93,6 +89,7 @@
       <setting id="casstudio_password" label="32016" type="text" default="" option="hidden" subsetting="true" visible="eq(-2,true)" />
       <setting id="casstudio_alias" label="32077" type="text" default="" subsetting="true" visible="eq(-3,true)" />
       <setting id="casstudio_contains" type="enum" label="32078" subsetting="true" lvalues="32079|32080|32081" visible="eq(-4,true)" />
+
     <setting label="BlueBird" id="use_bluebird" type="bool" default="false" />
       <setting id="bluebird_username" label="32015" type="text" default="" subsetting="true" visible="eq(-1,true)" />
       <setting id="bluebird_password" label="32016" type="text" default="" option="hidden" subsetting="true" visible="eq(-2,true)" />
@@ -149,5 +146,6 @@
     <setting label="32086" id="experemental_notice" type="text" enable="false" />
     <setting label="32087" id="disable_max" type="bool" default="false" />
     <setting label="32088" id="sort_by_resolution" type="bool" default="false" />
+    <setting label="32090" id="use_debug_parser" type="bool" default="false" />
   </category>
 </settings>

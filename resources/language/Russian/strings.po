@@ -191,8 +191,8 @@ msgid "Allow no seeds"
 msgstr "Показывать раздачи без сидеров"
 
 msgctxt "#32085"
-msgid "Experemental"
-msgstr "Эксперемент"
+msgid "Experimental"
+msgstr "Эксперимент"
 
 msgctxt "#32086"
 msgid "Warning!"
@@ -205,3 +205,12 @@ msgstr "Отключить укорачивание списка раздач"
 msgctxt "#32088"
 msgid "Sort results by resolution"
 msgstr "Сортировать список по разрешению"
+
+msgctxt "#32089"
+msgid "Login failed"
+msgstr "Авторизация не удалась"
+
+msgctxt "#32090"
+msgid "Log debug messages for parsing"
+msgstr "Писать в лог сообщения парсера"
+

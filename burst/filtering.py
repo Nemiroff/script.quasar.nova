@@ -11,7 +11,6 @@ from urllib import unquote
 from parser.HTMLParser import HTMLParser
 from quasar.provider import log, get_setting
 from providers.definitions import definitions
-from providers.helpers import t411season, t411episode
 from utils import Magnet, get_int, get_float, clean_number, size_int, get_alias
 
 try:
@@ -52,11 +51,11 @@ class Filtering:
         resolutions = OrderedDict()
         resolutions['filter_240p'] = ['240p', u'240р', '_tvrip_', 'satrip', 'vhsrip']
         resolutions['filter_480p'] = ['480p', u'480р', 'xvid', 'dvd', 'dvdrip', 'hdtv']
-        resolutions['filter_720p'] = ['720p', u'720р', '720i', 'hdrip', 'bluray', 'blu_ray', 'brrip', 'bdrip']
-        resolutions['filter_1080p'] = ['1080p', u'1080р', '1080i', 'fullhd', '_fhd_']
+        resolutions['filter_720p'] = ['720p', u'720р', '720i', '/hd720p', 'hdrip', 'bluray', 'blu_ray', 'brrip', 'bdrip']
+        resolutions['filter_1080p'] = ['1080p', u'1080р', '1080i', 'fullhd', '_fhd_', '/hd1080p', '/hdr1080p']
         resolutions['filter_1440p'] = ['_2k_', '1440p', u'1440р', '2k', u'2к']
         resolutions['filter_2160p'] = ['_4k_', '2160p', u'2160р', 'uhd', '4k', u'4к']
-        resolutions['filter_remux'] = ['_remux', '_bd-remux_', 'blu-ray_disc_']
+        resolutions['filter_remux'] = ['remux', 'bd_remux', 'blu-ray_disc']
         self.resolutions = resolutions
 
         self.release_types = {
@@ -72,7 +71,7 @@ class Filtering:
             'filter_cam': ['_cam_', 'hdcam'],
             'filter_tvrip': ['_tvrip_', 'satrip'],
             'filter_vhsrip': ['vhsrip'],
-            'filter_trailer': ['trailer'],
+            'filter_trailer': ['trailer', u'трейлер', u'тизер'],
             'filter_workprint': ['workprint']
         }
 
@@ -310,19 +309,18 @@ class Filtering:
                 use_language = None
                 if ':' in keyword:
                     use_language = keyword.split(':')[1].lower()
-                if provider not in self.language_exceptions and \
-                   (use_language or self.kodi_language) and \
-                   'titles' in self.info and self.info['titles']:
+                if provider not in self.language_exceptions and (use_language or self.kodi_language) and 'titles' in self.info and self.info['titles']:
                     try:
-                        if self.kodi_language and self.kodi_language in self.info['titles']:
+                        if not use_language and self.kodi_language and self.kodi_language in self.info['titles']:
                             use_language = self.kodi_language
                         if use_language not in self.info['titles']:
                             use_language = language
+                            if 'original' in self.info['titles']:
+                                title = self.info['titles']['original']
                         if use_language in self.info['titles'] and self.info['titles'][use_language]:
                             title = self.info['titles'][use_language]
                             title = self.normalize_name(title)
-                            log.info("[%s] Using translated '%s' title %s" % (provider, use_language,
-                                                                              repr(title)))
+                            log.info("[%s] Using translated '%s' title %s" % (provider, use_language, repr(title)))
                             log.debug("[%s] Translated titles from Elementum: %s" % (provider, repr(self.info['titles'])))
                     except Exception as e:
                         import traceback
@@ -336,10 +334,7 @@ class Filtering:
             if 'season' in keyword:
                 if '+' in keyword:
                     keys = keyword.split('+')
-                    if keys[1] == "t411season":
-                        season = str(t411season(self.info['season']))
-                    else:
-                        season = str(self.info["season"] + get_int(keys[1]))
+                    season = str(self.info["season"] + get_int(keys[1]))
                 elif ':' in keyword:
                     keys = keyword.split(':')
                     season = ('%%.%sd' % keys[1]) % self.info["season"]
@@ -350,10 +345,7 @@ class Filtering:
             if 'episode' in keyword:
                 if '+' in keyword:
                     keys = keyword.split('+')
-                    if keys[1] == "t411episode":
-                        episode = str(t411episode(self.info['episode']))
-                    else:
-                        episode = str(self.info["episode"] + get_int(keys[1]))
+                    episode = str(self.info["episode"] + get_int(keys[1]))
                 elif ':' in keyword:
                     keys = keyword.split(':')
                     episode = ('%%.%sd' % keys[1]) % self.info["episode"]
@@ -378,7 +370,6 @@ class Filtering:
             self.reason = '[%s] %s' % (provider, '*** Empty name ***')
             return False
 
-        name = self.exception(name)
         name = self.normalize_name(name)
         if self.filter_title and self.title:
             self.title = self.normalize_name(self.title)
@@ -485,6 +476,7 @@ class Filtering:
         if '*' in keys:
             res = True
         else:
+            value = value.lower()
             res1 = []
             for key in keys:
                 res2 = []
@@ -492,7 +484,7 @@ class Filtering:
                     item = item.replace('_', ' ')
                     if strict:
                         item = ' ' + item + ' '
-                    if item in value:
+                    if item.lower() in value:
                         res2.append(True)
                     else:
                         res2.append(False)
@@ -514,25 +506,6 @@ class Filtering:
         name = HTMLParser().unescape(name.lower())
 
         return name
-
-    def exception(self, title=None):
-        """ Change the title to the standard name in torrent sites
-
-        Args:
-            title (str): Title to check
-
-        Returns:
-            str: Standard title
-        """
-        if title:
-            title = title.lower()
-            title = title.replace('csi crime scene investigation', 'CSI')
-            title = title.replace('law and order special victims unit', 'law and order svu')
-            title = title.replace('law order special victims unit', 'law and order svu')
-            title = title.replace('S H I E L D', 'SHIELD')
-
-        return title
-
 
 def apply_filters(results_list):
     """ Applies final result de-duplicating, hashing and sorting
