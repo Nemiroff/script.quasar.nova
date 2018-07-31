@@ -133,9 +133,6 @@ def process(provider, generator, filtering, has_special, verify_name=True, verif
             url_search = url_search.replace('EXTRA', '')
         url_search = url_search.replace(' ', definition['separator'])
 
-        # MagnetDL fix...
-        url_search = url_search.replace('FIRSTLETTER', query[:1])
-
         # Creating the payload for POST method
         payload = dict()
         for key, value in filtering.post_data.iteritems():
@@ -243,14 +240,13 @@ def process(provider, generator, filtering, has_special, verify_name=True, verif
                     else:
                         log.error("[%s] Token auth failed with response: %s" % (provider, repr(client.content)))
                         return filtering.results
-                elif not logged_in and client.login(definition['root_url'] + definition['login_path'],
-                                                    eval(login_object), definition['login_failed']):
+                elif not logged_in and client.login(definition['root_url'] + definition['login_path'], eval(login_object), definition['login_failed']):
                     log.info('[%s] Login successful' % provider)
                     logged_in = True
                 elif not logged_in:
                     log.error("[%s] Login failed: %s", provider, client.status)
                     log.debug("[%s] Failed login content: %s", provider, repr(client.content))
-                    notify(translation(32089), image=get_icon_path())
+                    notify(translation(32089) % provider, image=get_icon_path())
                     return filtering.results
 
                 if logged_in:

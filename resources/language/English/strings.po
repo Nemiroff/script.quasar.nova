@@ -207,7 +207,7 @@ msgid "Sort results by resolution"
 msgstr ""
 
 msgctxt "#32089"
-msgid "Login failed"
+msgid "Login %s failed"
 msgstr ""
 
 msgctxt "#32090"
