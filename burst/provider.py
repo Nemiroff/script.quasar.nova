@@ -88,13 +88,7 @@ def process(provider, generator, filtering, has_special, verify_name=True, verif
     definition = get_alias(definition, get_setting("%s_alias" % provider))
 
     client = Client()
-    token = None
     logged_in = False
-    token_auth = False
-
-    if get_setting("use_cloudhole", bool):
-        client.clearance = get_setting('clearance')
-        client.user_agent = get_setting('user_agent')
 
     if get_setting('kodi_language', bool):
         kodi_language = xbmc.getLanguage(xbmc.ISO_639_1)
@@ -161,53 +155,14 @@ def process(provider, generator, filtering, has_special, verify_name=True, verif
             filtering.filter_title = True
             filtering.title = query
 
-        if token:
-            log.info('[%s] Reusing existing token' % provider)
-            url_search = url_search.replace('TOKEN', token)
-        elif 'token' in definition:
-            token_url = definition['base_url'] + definition['token']
-            log.debug("Getting token for %s at %s" % (provider, repr(token_url)))
-            client.open(token_url.encode('utf-8'))
-            try:
-                token_data = json.loads(client.content)
-            except:
-                log.error('%s: Failed to get token for %s' % (provider, repr(url_search)))
-                return filtering.results
-            log.debug("Token response for %s: %s" % (provider, repr(token_data)))
-            if 'token' in token_data:
-                token = token_data['token']
-                log.debug("Got token for %s: %s" % (provider, repr(token)))
-                url_search = url_search.replace('TOKEN', token)
-            else:
-                log.warning('%s: Unable to get token for %s' % (provider, repr(url_search)))
-
         if logged_in:
             log.info("[%s] Reusing previous login" % provider)
-        elif token_auth:
-            log.info("[%s] Reusing previous token authorization" % provider)
         elif 'private' in definition and definition['private']:
             username = get_setting('%s_username' % provider)
             password = get_setting('%s_password' % provider)
             passkey = get_setting('%s_passkey' % provider)
-            if not username and not password and not passkey:
-                for addon_name in ('script.magnetic.%s' % provider, 'script.magnetic.%s-mc' % provider):
-                    for setting in ('username', 'password'):
-                        try:
-                            value = xbmcaddon.Addon(addon_name).getSetting(setting)
-                            set_setting('%s_%s' % (provider, setting), value)
-                            if setting == 'username':
-                                username = value
-                            if setting == 'password':
-                                password = value
-                        except:
-                            pass
 
-            if passkey:
-                logged_in = True
-                client.passkey = passkey
-                url_search = url_search.replace('PASSKEY', passkey)
-
-            elif 'login_object' in definition and definition['login_object']:
+            if 'login_object' in definition and definition['login_object']:
                 logged_in = False
                 login_object = definition['login_object'].replace('USERNAME', '"%s"' % username).replace('PASSWORD', '"%s"' % password)
 
@@ -220,27 +175,7 @@ def process(provider, generator, filtering, has_special, verify_name=True, verif
                         log.info('[%s] Login successful' % provider)
                         logged_in = True
 
-                if 'token_auth' in definition:
-                    # log.debug("[%s] logging in with: %s" % (provider, login_object))
-                    if client.open(definition['root_url'] + definition['token_auth'], post_data=eval(login_object)):
-                        try:
-                            token_data = json.loads(client.content)
-                        except:
-                            log.error('%s: Failed to get token from %s' % (provider, definition['token_auth']))
-                            return filtering.results
-                        log.debug("Token response for %s: %s" % (provider, repr(token_data)))
-                        if 'token' in token_data:
-                            client.token = token_data['token']
-                            log.debug("Auth token for %s: %s" % (provider, repr(client.token)))
-                        else:
-                            log.error('%s: Unable to get auth token for %s' % (provider, repr(url_search)))
-                            return filtering.results
-                        log.info('[%s] Token auth successful' % provider)
-                        token_auth = True
-                    else:
-                        log.error("[%s] Token auth failed with response: %s" % (provider, repr(client.content)))
-                        return filtering.results
-                elif not logged_in and client.login(definition['root_url'] + definition['login_path'], eval(login_object), definition['login_failed']):
+                if not logged_in and client.login(definition['root_url'] + definition['login_path'], eval(login_object), definition['login_failed']):
                     log.info('[%s] Login successful' % provider)
                     logged_in = True
                 elif not logged_in:
@@ -254,9 +189,9 @@ def process(provider, generator, filtering, has_special, verify_name=True, verif
                         log.info('[%s] Search lostfilm serial ID...', provider)
                         url_search = fix_lf(url_search)
                         client.open(url_search.encode('utf-8'), post_data=payload, get_data=data)
-                        search_info = re.search(r'PlayEpisode\((.*?)\)">', client.content)
+                        search_info = re.search(r'rel="(.*?)">', client.content)
                         if search_info:
-                            series_details = re.search('\'(\d+)\',\'(\d+)\',\'(\d+)\'', search_info.group(1))
+                            series_details = re.search('(\d+),(\d+),(\d+)', search_info.group(1))
                             client.open(definition['root_url'] + '/v_search.php?c=%s&s=%s&e=%s' % (series_details.group(1), series_details.group(2), series_details.group(3)))
                             redirect_url = re.search(ur'url=(.*?)">', client.content)
                             if redirect_url is not None:

@@ -18,7 +18,7 @@ from parser.ehp import Html
 from provider import process
 from providers.definitions import definitions, longest
 from filtering import apply_filters, Filtering
-from client import USER_AGENT, Client, get_cloudhole_key, get_cloudhole_clearance
+from client import USER_AGENT, Client
 from utils import ADDON_ICON, notify, translation, sizeof, get_icon_path, get_enabled_providers, get_alias
 
 provider_names = []
@@ -42,32 +42,9 @@ def search(payload, method="general"):
     log.debug("Searching with payload (%s): %s" % (method, repr(payload)))
 
     if method == 'general':
-        if 'query' in payload:
-            payload['title'] = payload['query']
-            payload['titles'] = {
-                'source': payload['query']
-            }
-        else:
-            payload = {
-                'title': payload,
-                'titles': {
-                    'source': payload
-                },
-            }
-
-    payload['titles'] = dict((k.lower(), v) for k, v in payload['titles'].iteritems())
-
-    # If titles[] exists in payload and there are special chars in titles[source]
-    #   then we set a flag to possibly modify the search query
-    payload['has_special'] = 'titles' in payload and \
-                             bool(payload['titles']) and \
-                             'source' in payload['titles'] and \
-                             any(c in payload['titles']['source'] for c in special_chars)
-    if payload['has_special']:
-        log.debug("Query title contains special chars, so removing any quotes in the search query")
-    if 'absolute_number' in payload and 'ja' in payload['titles']:
-        log.info("Search anime ?")
-        method = "anime"
+        payload = {
+            'title': payload
+        }
 
     global request_time
     global provider_names
@@ -87,11 +64,6 @@ def search(payload, method="general"):
         return []
 
     log.info("Burstin' with %s" % ", ".join([definitions[provider]['name'] for provider in providers]))
-
-    if get_setting("use_cloudhole", bool):
-        clearance, user_agent = get_cloudhole_clearance(get_cloudhole_key())
-        set_setting('clearance', clearance)
-        set_setting('user_agent', user_agent)
 
     if get_setting('kodi_language', bool):
         kodi_language = xbmc.getLanguage(xbmc.ISO_639_1)
@@ -225,10 +197,6 @@ def extract_torrents(provider, client):
             subclient = Client()
             subclient.passkey = client.passkey
 
-            if get_setting("use_cloudhole", bool):
-                subclient.clearance = get_setting('clearance')
-                subclient.user_agent = get_setting('user_agent')
-
             uri = torrent.split('|')  # Split cookies for private trackers
             subclient.open(uri[0].encode('utf-8'))
 
@@ -281,31 +249,21 @@ def extract_torrents(provider, client):
         # Pass client cookies with torrent if private
         if (definition['private'] or get_setting("use_cloudhole", bool)) and not torrent.startswith('magnet'):
             user_agent = USER_AGENT
-            if get_setting("use_cloudhole", bool):
-                user_agent = get_setting("user_agent")
 
-            if client.passkey:
-                torrent = torrent.replace('PASSKEY', client.passkey)
-            elif client.token:
-                headers = {'Authorization': client.token, 'User-Agent': user_agent}
+            log.debug("[%s] Cookies: %s" % (provider, repr(client.cookies())))
+            parsed_url = urlparse(definition['root_url'])
+            cookie_domain = '{uri.netloc}'.format(uri=parsed_url).replace('www.', '')
+            cookies = []
+            log.debug("[%s] cookie_domain: %s" % (provider, cookie_domain))
+            for cookie in client._cookies:
+                log.debug("[%s] cookie for domain: %s (%s=%s)" % (provider, cookie.domain, cookie.name, cookie.value))
+                if cookie_domain in cookie.domain:
+                    cookies.append(cookie)
+            if cookies:
+                headers = {'Cookie': ";".join(["%s=%s" % (c.name, c.value) for c in cookies]), 'User-Agent': user_agent}
                 log.debug("[%s] Appending headers: %s" % (provider, repr(headers)))
                 torrent = append_headers(torrent, headers)
                 log.debug("[%s] Torrent with headers: %s" % (provider, repr(torrent)))
-            else:
-                log.debug("[%s] Cookies: %s" % (provider, repr(client.cookies())))
-                parsed_url = urlparse(definition['root_url'])
-                cookie_domain = '{uri.netloc}'.format(uri=parsed_url).replace('www.', '')
-                cookies = []
-                log.debug("[%s] cookie_domain: %s" % (provider, cookie_domain))
-                for cookie in client._cookies:
-                    log.debug("[%s] cookie for domain: %s (%s=%s)" % (provider, cookie.domain, cookie.name, cookie.value))
-                    if cookie_domain in cookie.domain:
-                        cookies.append(cookie)
-                if cookies:
-                    headers = {'Cookie': ";".join(["%s=%s" % (c.name, c.value) for c in cookies]), 'User-Agent': user_agent}
-                    log.debug("[%s] Appending headers: %s" % (provider, repr(headers)))
-                    torrent = append_headers(torrent, headers)
-                    log.debug("[%s] Torrent with headers: %s" % (provider, repr(torrent)))
 
         if name and torrent and needs_subpage:
             if not torrent.startswith('http'):

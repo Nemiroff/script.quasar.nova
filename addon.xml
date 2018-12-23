@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.quasar.nova" name="Quasar [COLOR FF5CB9FF]Nova[/COLOR]" version="1.0.19" provider-name="Nemiroff">
+<addon id="script.quasar.nova" name="Quasar [COLOR FF5CB9FF]Nova[/COLOR]" version="1.0.20" provider-name="Nemiroff">
     <requires>
         <import addon="xbmc.python" version="2.19.0"/>
         <import addon="plugin.video.quasar" optional="true"/>
