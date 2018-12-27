@@ -46,6 +46,9 @@ def search(payload, method="general"):
             'title': payload
         }
 
+    if 'has_special' not in payload:
+        payload['has_special'] = False
+
     global request_time
     global provider_names
     global provider_results
@@ -75,7 +78,7 @@ def search(payload, method="general"):
             log.info("No '%s' translation available..." % kodi_language)
 
     p_dialog = xbmcgui.DialogProgressBG()
-    p_dialog.create('Elementum [COLOR FF5CB9FF]Nova[/COLOR]', translation(32061))
+    p_dialog.create('Quasar [COLOR FF5CB9FF]Nova[/COLOR]', translation(32061))
     for provider in providers:
         available_providers += 1
         provider_names.append(definitions[provider]['name'])

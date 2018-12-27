@@ -321,7 +321,7 @@ class Filtering:
                             title = self.info['titles'][use_language]
                             title = self.normalize_name(title)
                             log.info("[%s] Using translated '%s' title %s" % (provider, use_language, repr(title)))
-                            log.debug("[%s] Translated titles from Elementum: %s" % (provider, repr(self.info['titles'])))
+                            log.debug("[%s] Translated titles from Quasar: %s" % (provider, repr(self.info['titles'])))
                     except Exception as e:
                         import traceback
                         log.error("%s failed with: %s" % (provider, repr(e)))
@@ -572,7 +572,7 @@ def cleanup_results(results_list):
             hashes.append(hash_)
 
     if (get_setting("sort_by_resolution", bool)):
-        log.debug("[EXPEREMENTAL] Start last sorting list by resolution of all result before send to Elementum")
+        log.debug("[EXPEREMENTAL] Start last sorting list by resolution of all result before send to Quasar")
         filtered_list = sorted(filtered_list, key=lambda r: (get_int(r.pop('resolution'))), reverse=True)
     else:
         filtered_list = sorted(filtered_list, key=lambda r: (get_int(r['seeds'])), reverse=True)

@@ -147,8 +147,8 @@ msgid "Search timeout (seconds)"
 msgstr "Тайм-аут для пошуку (секунд)"
 
 msgctxt "#32071"
-msgid "Timeout setting must be lower than Elementum's"
-msgstr "Значення тайм-ауту повино бути меншим ніж у Elementum"
+msgid "Timeout setting must be lower than Quasar's"
+msgstr "Значення тайм-ауту повино бути меншим ніж у Quasar"
 
 msgctxt "#32075"
 msgid "No torrents found"
